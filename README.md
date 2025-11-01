@@ -2,6 +2,8 @@
 
 I saw [0github.com](https://0github.com/). I thought that it was compelling, but also it kinda shocked me that it needs to spin up a VM and run an LLM over the diff to create each view. It also totally leaves the rules of how to create the heat map grading up to the LLM as far as I could tell, so it isn't deterministic. This project does the same thing locally, without 3rd party dependencies, or using anyone else's computer all while have a clearly defined set of rules, meaning you know what you are gonna get every time you run it.
 
+[Here's a blog post with some more info in it.](https://eli.li/but-i-can-do-that-with-regex)
+
 ## Install it
 
 ```bash
