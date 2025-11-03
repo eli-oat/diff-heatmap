@@ -17,7 +17,8 @@ const testFiles = [
   'test-hover.js',
   'test-hover-reasons.js',
   'test-overflow.js',
-  'test-large-changes.js'
+  'test-large-changes.js',
+  'test-accessibility.js'
 ]
 
 let totalPassed = 0

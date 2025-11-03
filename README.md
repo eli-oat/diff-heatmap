@@ -69,6 +69,20 @@ The rules look for stuff like,
 - XXE attacks (XML parsers)
 - SSRF patterns (HTTP clients)
 - Memory safety issues (use-after-free, double-free)
+- Removed focus outlines (CSS outline: none)
+- Missing alt text on images
+- Missing ARIA labels on inputs/buttons
+- Incorrect ARIA attribute usage
+- ARIA relationships without matching IDs
+- `onClick` handlers without keyboard support
+- Positive `tabindex` values (breaks tab order)
+- Non-semantic HTML (div/span as buttons)
+- Missing labels on form elements
+- Skipped heading levels
+- Non-descriptive link text
+- Missing iframe titles
+- Disabled viewport zoom
+- Auto-playing media
 - Mutable global state
 - Shared state in concurrent code
 - Collection mutations

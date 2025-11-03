@@ -489,6 +489,121 @@ const RULES = {
       { regex: /\bhttp\.(Get|Post|Client)/g, desc: 'HTTP client usage', languages: ['go'] },
       { regex: /\b(localStorage|sessionStorage)\.setItem/g, desc: 'Browser storage writes', languages: ['javascript', 'typescript'] }
     ]
+  },
+  
+  // === ACCESSIBILITY (0.65-0.80) ===
+  // WCAG violations, ARIA misuse, keyboard/focus issues
+  
+  accessibility_critical: {
+    score: 0.80,
+    highlightClass: 'danger',
+    patterns: [
+      // CSS outline removal without alternative
+      { regex: /outline\s*:\s*(0|none)/gi, desc: 'Outline removed (keyboard focus indicator)', languages: ['css', 'javascript', 'typescript'] },
+      { regex: /outline-width\s*:\s*0/gi, desc: 'Outline width zero (keyboard focus)', languages: ['css', 'javascript', 'typescript'] },
+      // Missing alt text patterns
+      { regex: /<img(?![^>]*alt=)/gi, desc: 'img without alt attribute', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<img[^>]*alt\s*=\s*['"]\s*['"]/gi, desc: 'img with empty alt text (verify intentional)', languages: ['html', 'javascript', 'typescript'] },
+      // Interactive elements without labels (removed input pattern - too many false positives with <label for="id">)
+      // Button with only icon content (no visible text)
+      { regex: /<button(?![^>]*aria-label)(?![^>]*aria-labelledby)[^>]*>\s*<(svg|i)[^>]*>\s*<\/(svg|i)>\s*<\/button>/gi, desc: 'button with only icon (verify accessible label)', languages: ['html', 'javascript', 'typescript'] },
+      // Auto-playing media
+      { regex: /<(video|audio)[^>]*autoplay/gi, desc: 'Auto-playing media (accessibility issue)', languages: ['html', 'javascript', 'typescript'] },
+      // Positive tabindex (tab order manipulation)
+      { regex: /tabindex\s*=\s*['"]?[1-9]\d*/gi, desc: 'Positive tabindex (breaks natural tab order)', languages: ['html', 'javascript', 'typescript'] },
+      // Color-only information
+      { regex: /color\s*[:=]\s*['"]?(red|green)['"]?\s*;?\s*(\/\/|\/\*).*(error|success|warning)/gi, desc: 'Color-only status indicator', languages: ['css', 'javascript', 'typescript'] }
+    ]
+  },
+  
+  accessibility_aria_issues: {
+    score: 0.75,
+    highlightClass: 'warning',
+    patterns: [
+      // ARIA misuse patterns
+      { regex: /role\s*=\s*['"]presentation['"][^>]*aria-/gi, desc: 'ARIA attributes on presentation role', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /role\s*=\s*['"]none['"][^>]*aria-/gi, desc: 'ARIA attributes on none role', languages: ['html', 'javascript', 'typescript'] },
+      // Redundant ARIA roles
+      { regex: /<button[^>]*role\s*=\s*['"]button['"]/gi, desc: 'Redundant role on button', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<nav[^>]*role\s*=\s*['"]navigation['"]/gi, desc: 'Redundant role on nav', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<main[^>]*role\s*=\s*['"]main['"]/gi, desc: 'Redundant role on main', languages: ['html', 'javascript', 'typescript'] },
+      // ARIA without proper relationships (removed - unreliable in line-by-line processing)
+      // Invalid ARIA on non-interactive elements
+      { regex: /<div[^>]*aria-expanded/gi, desc: 'aria-expanded on div (needs role or interactive element)', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<span[^>]*aria-checked/gi, desc: 'aria-checked on span (needs role or interactive element)', languages: ['html', 'javascript', 'typescript'] },
+      // ARIA required children/parents
+      { regex: /role\s*=\s*['"]listitem['"](?![^<]*<[^>]*(ul|ol|role\s*=\s*['"]list))/gi, desc: 'listitem role without list parent', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /role\s*=\s*['"]option['"](?![^<]*role\s*=\s*['"]listbox)/gi, desc: 'option role without listbox parent', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /role\s*=\s*['"]tab['"](?![^<]*role\s*=\s*['"]tablist)/gi, desc: 'tab role without tablist parent', languages: ['html', 'javascript', 'typescript'] }
+    ]
+  },
+  
+  accessibility_keyboard_issues: {
+    score: 0.60,
+    highlightClass: 'warning',
+    patterns: [
+      // onClick without keyboard support
+      { regex: /onClick\s*=(?![^}]*onKeyDown|[^}]*onKeyPress|[^}]*onKeyUp)/gi, desc: 'onClick without keyboard handler', languages: ['javascript', 'typescript'] },
+      { regex: /<div[^>]*onclick(?![^>]*onkeydown|[^>]*onkeypress|[^>]*tabindex)/gi, desc: 'onclick on div without keyboard support', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<span[^>]*onclick(?![^>]*onkeydown|[^>]*onkeypress|[^>]*tabindex)/gi, desc: 'onclick on span without keyboard support', languages: ['html', 'javascript', 'typescript'] },
+      // Tabindex without role
+      { regex: /tabindex\s*=\s*['"]0['"](?![^>]*role\s*=)/gi, desc: 'tabindex=0 without role (verify element purpose)', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /tabindex\s*=\s*['"]?-1['"]?(?![^>]*role\s*=)/gi, desc: 'tabindex=-1 without role (verify focus management)', languages: ['html', 'javascript', 'typescript'] },
+      // Focus management issues
+      { regex: /\.focus\(\)(?![^;]*\.blur\(\))/g, desc: 'focus() call without blur management', languages: ['javascript', 'typescript'] },
+      { regex: /autoFocus/g, desc: 'autoFocus (verify use in modals/dialogs)', languages: ['javascript', 'typescript'] },
+      // Mouse-only events
+      { regex: /onmouseover(?![^>]*onfocus)/gi, desc: 'mouseover without focus equivalent', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /onmouseout(?![^>]*onblur)/gi, desc: 'mouseout without blur equivalent', languages: ['html', 'javascript', 'typescript'] }
+    ]
+  },
+  
+  accessibility_semantic_html: {
+    score: 0.60,
+    highlightClass: 'warning',
+    patterns: [
+      // Semantic HTML violations
+      { regex: /<div[^>]*role\s*=\s*['"]button['"]/gi, desc: 'div as button (use <button> instead)', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<div[^>]*role\s*=\s*['"]link['"]/gi, desc: 'div as link (use <a> instead)', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<span[^>]*role\s*=\s*['"]heading['"]/gi, desc: 'span as heading (use <h1>-<h6> instead)', languages: ['html', 'javascript', 'typescript'] },
+      // Heading level skipping
+      { regex: /<h1[^>]*>.*<\/h1>\s*<h3/gi, desc: 'Skipped heading level (h1 to h3)', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<h2[^>]*>.*<\/h2>\s*<h4/gi, desc: 'Skipped heading level (h2 to h4)', languages: ['html', 'javascript', 'typescript'] },
+      // Form accessibility
+      { regex: /<form(?![^>]*role\s*=\s*['"]search['"])(?![^>]*aria-label)/gi, desc: 'form without accessible name (consider adding)', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<select(?![^>]*aria-label)(?![^>]*id\s*=)/gi, desc: 'select without label', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<textarea(?![^>]*aria-label)(?![^>]*id\s*=)/gi, desc: 'textarea without label', languages: ['html', 'javascript', 'typescript'] },
+      // Table accessibility
+      { regex: /<table(?![^>]*<caption)(?![^>]*aria-label)(?![^>]*role\s*=\s*['"]presentation)/gi, desc: 'table without caption or aria-label', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<th(?![^>]*scope\s*=)/gi, desc: 'th without scope attribute', languages: ['html', 'javascript', 'typescript'] },
+      // Link accessibility
+      { regex: /<a[^>]*href\s*=\s*['"][^'"]*['"](?![^>]*>(?!\s*<))>/gi, desc: 'link with no text content', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<a[^>]*>(?:click here|here|read more|link)\s*<\/a>/gi, desc: 'Non-descriptive link text', languages: ['html', 'javascript', 'typescript'] }
+    ]
+  },
+  
+  accessibility_content_issues: {
+    score: 0.65,
+    highlightClass: 'warning',
+    patterns: [
+      // Language specification
+      { regex: /<html(?![^>]*lang\s*=)/gi, desc: 'html without lang attribute', languages: ['html'] },
+      // Title requirements
+      { regex: /<iframe(?![^>]*title\s*=)/gi, desc: 'iframe without title', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<svg(?![^>]*role\s*=|[^>]*aria-label)/gi, desc: 'svg without role or aria-label', languages: ['html', 'javascript', 'typescript'] },
+      // Text alternatives
+      { regex: /<canvas(?![^>]*aria-label)>/gi, desc: 'canvas without fallback content', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /<object(?![^>]*aria-label)(?![^>]*<\/object>)/gi, desc: 'object without fallback', languages: ['html', 'javascript', 'typescript'] },
+      // Time limits
+      { regex: /setTimeout\([^,)]*redirect|window\.location\s*=.*setTimeout/gi, desc: 'Timed redirect (provide user control)', languages: ['javascript', 'typescript'] },
+      // Text sizing and zoom
+      { regex: /user-scalable\s*=\s*['"]?no['"]?/gi, desc: 'Viewport zoom disabled', languages: ['html', 'javascript', 'typescript'] },
+      { regex: /maximum-scale\s*=\s*['"]?1['"]?/gi, desc: 'Maximum scale prevents zoom', languages: ['html', 'javascript', 'typescript'] },
+      // Required fields
+      { regex: /<input[^>]*required(?![^>]*aria-required)/gi, desc: 'required without aria-required', languages: ['html', 'javascript', 'typescript'] },
+      // Error handling
+      { regex: /aria-invalid\s*=\s*['"]true['"](?![^>]*aria-describedby)/gi, desc: 'aria-invalid without error description', languages: ['html', 'javascript', 'typescript'] }
+    ]
   }
 };
 
@@ -530,8 +645,15 @@ function detectLanguage(filename) {
     'cs': 'csharp',
     'sh': 'shell',
     'bash': 'shell',
+    // Web languages
     'html': 'html',
     'htm': 'html',
+    'css': 'css',
+    'scss': 'css',
+    'sass': 'css',
+    'less': 'css',
+    'vue': 'javascript',
+    'svelte': 'javascript',
     'xml': 'xml',
     'json': 'json',
     'yaml': 'yaml',
